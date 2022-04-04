@@ -1,2 +1,3 @@
-Version:  Releases-WIn64-1.0.0
+Version:  Releases-WIn64-1.0.2 \n
 *这个项目是用来定时关机的*
+\*版本更新一般是用来修Bug的
