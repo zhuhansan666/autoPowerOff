@@ -7,8 +7,11 @@ import pygame,win32gui,win32con,win32com.client
 pygame.init()
 
 def 活动窗口(hwnd):
-    win32com.client.Dispatch("WScript.Shell").SendKeys('%')
-    win32gui.SetForegroundWindow(hwnd)
+    try:
+        win32com.client.Dispatch("WScript.Shell").SendKeys('%')
+        win32gui.SetForegroundWindow(hwnd)
+    except Exception:
+        pass
 
 def head(hwnd): #置顶
         win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0,
@@ -111,4 +114,4 @@ def mainWindow():
             return 1
 
 if __name__ == "__main__":
-    mainWindow()
+    print(mainWindow())
