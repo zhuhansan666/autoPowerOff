@@ -13,25 +13,11 @@ from datetime import datetime
 import time
 from ui import mainWindow
 import pynput
-
-workPath = reWorkPath()
-
-maxJ = 60
-j = -1 #主操作检测变量
-
-
-#文件初始化（避免删除
-
-file1 = open(join(workPath,'./images/icon.png'))
-file2 = open(join(workPath,'./Font/MiSans-Bold.ttf'))
-file3 = open(join(workPath,'./sounds/定时关机提示音.wav'))
-
-#结束文件初始化（避免删除
-
-
+from json import loads
+from json.decoder import JSONDecodeError
 
 def time_check(_time_:str,精确匹配:bool=False):
-    '''时间格式:%Y-%m-%d/%H:%M:%S'''
+    '''时间格式:%Y-%m-%d/%H:%M:%S 或 %H:%M:%S'''
     if '/' not in _time_:
         _time_ = "{}{}".format(time.strftime('%Y-%m-%d/',time.localtime(time.time())),_time_)
     try:
@@ -59,6 +45,43 @@ def time_check(_time_:str,精确匹配:bool=False):
             S = int((cache - d*86400 - H*3600 - M*60))
             MS = (cache % 1) * 1000
             return ('%02d'%d,'%02d'%H,'%02d'%M,'%02d'%S,'%03d'%MS,False)
+
+workPath = reWorkPath()
+
+maxJ = 60
+j = -1 #主操作检测变量
+setTime = "16:15:00"
+debug = False
+exit = False
+
+#文件初始化（避免删除
+
+file1 = open(join(workPath,'./images/icon.png'))
+file2 = open(join(workPath,'./Font/MiSans-Bold.ttf'))
+file3 = open(join(workPath,'./sounds/定时关机提示音.wav'))
+try:
+    jsonFile = open(join(workPath,'./settings.json'))
+    jsonInFo = loads(jsonFile.read())
+    if 'time' in jsonInFo:
+        setTimeTemp = jsonInFo['time']
+        if time_check(setTimeTemp) != "错误:时间格式问题":
+            setTime = setTimeTemp
+    if 'waitTime' in jsonInFo:
+        maxJTemp = jsonInFo['waitTime']
+        if type(maxJTemp):
+            maxJ = maxJTemp
+        elif maxJTemp.isdigit():
+            maxJ = int(maxJTemp)
+    if 'debug' in jsonInFo:
+        debug = bool(jsonInFo['debug'])
+
+except FileNotFoundError:
+    pass
+except JSONDecodeError:
+    pass
+
+#结束文件初始化（避免删除
+
 
 
 def is_admin():
@@ -107,7 +130,7 @@ class Daemon:
             run("reg add {} /v ConsentPromptBehaviorAdmin /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
             run("taskkill /im dllhost.exe /f",shell=True)
     def startUp(self,whileTrue:bool=True,setFile=False):
-        "设置当前用户自启动"
+        """设置当前用户自启动"""
         run = 0
         while whileTrue or run == 0:
             run += 1
@@ -146,10 +169,12 @@ for f in mainList:
     threadList.append(t)
 
 def wndproc(hwnd, msg, wparam, lparam): #关机事件后执行的函数
-    if datetime.today().isoweekday() < 6 and not time_check("16:15:00")[-1]:
+    if datetime.today().isoweekday() < 6 and not time_check(setTime)[-1]:
         run('shutdown /r /f /t 3',shell=True)
         win32gui.MessageBox(None, "非法的操作：工作日关机(将自动重启,若误报请联系开发者.)", '非法的操作：工作日关机(将自动重启,若误报请联系开发者.)',(win32con.MB_OK | win32con.MB_ICONERROR))
         return 0
+    else:
+        _exit(0)
 
 
 #初始化捕捉关机事件
@@ -189,14 +214,14 @@ lowTime = getTime()
 lowTime2 = getTime()
 
 while True:
-    if getTime() - lowTime2 >= 1:
+    if getTime() - lowTime2 >= 1 or debug:
         j += 1
         lowTime2 = getTime()
-    if getTime() - lowTime >= 0.1:
+    if (getTime() - lowTime >= 0.1 and not exit) or debug:
         lowTime = getTime()
         win32gui.PumpWaitingMessages() #捕捉关机主程序
-        if time_check("16:15:00")[-1]:
-            if j >= maxJ:
+        if time_check(setTime)[-1] or debug:
+            if j >= maxJ or debug:
                 rec = mainWindow()
                 if rec == 1:
                     run('shutdown /s /f /t 0',shell=True)
@@ -204,6 +229,4 @@ while True:
                 elif rec == 2:
                     j = -1
                 elif rec == 3:
-                    _exit(0)
-
-
+                    exit = True

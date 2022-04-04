@@ -4,7 +4,7 @@ from os import _exit
 from PygameButtonClass import button
 from time import time
 import pygame,win32gui,win32con,win32com.client
-pygame.init()
+
 
 def 活动窗口(hwnd):
     try:
@@ -18,6 +18,8 @@ def head(hwnd): #置顶
                               win32con.SWP_NOOWNERZORDER | win32con.SWP_NOSIZE | win32con.SWP_NOMOVE)
 
 def mainWindow():
+    pygame.init()
+    
     workPath = reWorkPath()
 
 
