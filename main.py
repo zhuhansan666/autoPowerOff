@@ -16,6 +16,8 @@ import pynput
 from json import loads
 from json.decoder import JSONDecodeError
 
+url = """https://github.com/zhuhansan666/autoPowerOff"""
+
 def time_check(_time_:str,精确匹配:bool=False):
     '''时间格式:%Y-%m-%d/%H:%M:%S 或 %H:%M:%S'''
     if '/' not in _time_:
@@ -230,3 +232,6 @@ while True:
                     j = -1
                 elif rec == 3:
                     exit = True
+                elif rec == 4:
+                    j = -1
+                    run("explorer {}".format(url),shell=True)

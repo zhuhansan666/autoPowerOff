@@ -26,6 +26,7 @@ def mainWindow():
     colors = {
         "w":(255,255,255),
         "b":(0,0,0),
+        "blue":(43, 16, 195),
     }
 
     sound = pygame.mixer.Sound(join(workPath,'./sounds/定时关机提示音.wav'))
@@ -55,11 +56,13 @@ def mainWindow():
     waitS = 3
     font =  pygame.font.Font(fontFile,fontSize)
     fontbig =  pygame.font.Font(fontFile,fontSize+10)
-
+    githubButtonPos = (27,67)
+    githubButtonSize = 20
 
     b1 = button("确定,我现在关机",(5,mainY),('  确定  ',fontFile,"file",fontSize,colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
     b2 = button("稍等,程序后台检测",(30,mainY),(' 稍等,程序后台检测 ',fontFile,"file",fontSize,colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
     b3 = button("取消,我现在退出程序",(300,mainY),(' 取消,我现在退出程序 ',fontFile,"file",fontSize,colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
+    b4 = button("github",githubButtonPos,('github项目页面',fontFile,"file",githubButtonSize,colors["blue"],False,False,False),screen)#,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
     surface = fontbig.render("已达预定时间,将在10秒后自动关机~",True,colors["b"])
     showS = (round(screen.get_width()/2-surface.get_width()/2),titleY)
 
@@ -88,6 +91,7 @@ def mainWindow():
         b2.draw(evensList)
         b3.setPos((b2.getEndX()+3,mainY))
         b3.draw(evensList)
+        b4.draw(evensList)
         if b1.returnClick()[0]:
             pygame.quit()
             return 1
@@ -109,6 +113,9 @@ def mainWindow():
                 pygame.display.update()
             pygame.quit()
             return 3
+        if b4.returnClick()[0]:
+            pygame.quit()
+            return 4
         pygame.display.update()
         screen.fill(colors.get("w"))
         if time() - lowTime >= outTimeS:

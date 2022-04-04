@@ -102,16 +102,16 @@ class button(object):
                 阴影Surface.set_alpha(self.阴影透明度) #设置阴影透明度
                 self.screen.blit(阴影Surface, (0,0)) #画选中阴影
         else:
-            # if len(eventList) == 0:
-            #     mousePos = pygame.mouse.get_pos() #获取鼠标位置
-            #     surfacePos = (self.buttonPos[0],self.buttonPos[1],self.buttonPos[0]+surfaceSize[0],self.buttonPos[1]+surfaceSize[1]) #获取对象位置
-            # for e in eventList: #更新鼠标位置并获取操作
-            #     mousePos = pygame.mouse.get_pos() #获取鼠标位置
-            #     surfacePos = (self.buttonPos[0],self.buttonPos[1],self.buttonPos[0]+surfaceSize[0],self.buttonPos[1]+surfaceSize[1]) #获取对象位置
-            #     if e.type == pygame.MOUSEBUTTONUP: #检测是否鼠标左键是否弹起
-            if self.checkPos(e.pos,surfacePos): #检测是否按下按钮
-                self.buttonType = e.button #left 1,moddle 2,right 3,侧键(left Down) 6,鼠标滚轮上 4,鼠标滚轮下 5,...
-                self.button = True
+            if len(eventList) == 0:
+                mousePos = pygame.mouse.get_pos() #获取鼠标位置
+                surfacePos = (self.buttonPos[0],self.buttonPos[1],self.buttonPos[0]+surfaceSize[0],self.buttonPos[1]+surfaceSize[1]) #获取对象位置
+            for e in eventList: #更新鼠标位置并获取操作
+                mousePos = pygame.mouse.get_pos() #获取鼠标位置
+                surfacePos = (self.buttonPos[0],self.buttonPos[1],self.buttonPos[0]+surfaceSize[0],self.buttonPos[1]+surfaceSize[1]) #获取对象位置
+                if e.type == pygame.MOUSEBUTTONUP: #检测是否鼠标左键是否弹起
+                    if self.checkPos(e.pos,surfacePos): #检测是否按下按钮
+                        self.buttonType = e.button #left 1,moddle 2,right 3,侧键(left Down) 6,鼠标滚轮上 4,鼠标滚轮下 5,...
+                        self.button = True
 
         self.screen.blit(tempSurface,self.buttonPos) #画主对象
         if self.screenUpdate: #检测是否自动更新屏幕
