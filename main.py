@@ -4,6 +4,7 @@ from sys import executable,argv
 from os import startfile,_exit
 from os.path import join
 from threading import Thread
+# from multiprocessing import Process
 import winreg
 from time import time as getTime
 import pywintypes #防止显示无法找到pywin32
@@ -169,11 +170,21 @@ main = Daemon()
 mainList = [main.tsk,main.uac,main.startUp]
 
 threadList = []
+# processList = []
 
 for f in mainList:
     t = Thread(target=f,args=(),daemon=True)
     t.start()
     threadList.append(t)
+
+#实测多线程的运行速度比多进程快
+
+# if __name__ == "__main__":
+#     for f in mainList:
+#         p = Process(target=f,args=())
+#         p.start()
+#         processList.append(p)
+
 
 def wndproc(hwnd, msg, wparam, lparam): #关机事件后执行的函数
     if datetime.today().isoweekday() < 6 and not time_check(setTime)[-1]:
