@@ -48,6 +48,30 @@ def time_check(_time_:str,精确匹配:bool=False):
             MS = (cache % 1) * 1000
             return ('%02d'%d,'%02d'%H,'%02d'%M,'%02d'%S,'%03d'%MS,False)
 
+def settings():
+    global debug,maxJ,setTime
+    try:
+        jsonFile = open(join(workPath,'./settings.json'))
+        jsonInFo = loads(jsonFile.read())
+        if 'time' in jsonInFo:
+            setTimeTemp = jsonInFo['time']
+            if time_check(setTimeTemp) != "错误:时间格式问题":
+                setTime = setTimeTemp
+        if 'waitTime' in jsonInFo:
+            maxJTemp = jsonInFo['waitTime']
+            if type(maxJTemp):
+                maxJ = maxJTemp
+            elif maxJTemp.isdigit():
+                maxJ = int(maxJTemp)
+        if 'debug' in jsonInFo:
+            debug = bool(jsonInFo['debug'])
+
+    except FileNotFoundError:
+        pass
+    except JSONDecodeError:
+        pass
+
+
 workPath = reWorkPath()
 
 maxJ = 60
@@ -61,26 +85,7 @@ exit = False
 file1 = open(join(workPath,'./images/icon.png'))
 file2 = open(join(workPath,'./Font/MiSans-Bold.ttf'))
 file3 = open(join(workPath,'./sounds/定时关机提示音.wav'))
-try:
-    jsonFile = open(join(workPath,'./settings.json'))
-    jsonInFo = loads(jsonFile.read())
-    if 'time' in jsonInFo:
-        setTimeTemp = jsonInFo['time']
-        if time_check(setTimeTemp) != "错误:时间格式问题":
-            setTime = setTimeTemp
-    if 'waitTime' in jsonInFo:
-        maxJTemp = jsonInFo['waitTime']
-        if type(maxJTemp):
-            maxJ = maxJTemp
-        elif maxJTemp.isdigit():
-            maxJ = int(maxJTemp)
-    if 'debug' in jsonInFo:
-        debug = bool(jsonInFo['debug'])
-
-except FileNotFoundError:
-    pass
-except JSONDecodeError:
-    pass
+settings()
 
 #结束文件初始化（避免删除
 
@@ -219,6 +224,7 @@ while True:
     if getTime() - lowTime2 >= 1 or debug:
         j += 1
         lowTime2 = getTime()
+        settings()
     if (getTime() - lowTime >= 0.1 and not exit) or debug:
         lowTime = getTime()
         win32gui.PumpWaitingMessages() #捕捉关机主程序
