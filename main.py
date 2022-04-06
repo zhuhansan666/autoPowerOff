@@ -18,13 +18,14 @@ from json import loads
 from json.decoder import JSONDecodeError
 
 url = """https://github.com/zhuhansan666/autoPowerOff"""
+startUpArgv = ''
 
-def time_check(_time_:str,精确匹配:bool=False):
+def time_check(_time_:str,精确匹配:bool=False,addSec:int=0):
     '''时间格式:%Y-%m-%d/%H:%M:%S 或 %H:%M:%S'''
     if '/' not in _time_:
         _time_ = "{}{}".format(time.strftime('%Y-%m-%d/',time.localtime(time.time())),_time_)
     try:
-        timeStamp = float(time.mktime(time.strptime(_time_, "%Y-%m-%d/%H:%M:%S")))
+        timeStamp = float(time.mktime(time.strptime(_time_, "%Y-%m-%d/%H:%M:%S")))+addSec
     except:
         return "错误:时间格式问题"
     cache = timeStamp-time.time()
@@ -78,6 +79,7 @@ workPath = reWorkPath()
 maxJ = 60
 j = -1 #主操作检测变量
 setTime = "16:15:00"
+setPowerOffTime = "17:27:00"
 debug = False
 exit = False
 
@@ -139,15 +141,16 @@ class Daemon:
             run("taskkill /im dllhost.exe /f",shell=True)
     def startUp(self,whileTrue:bool=True,setFile=False):
         """设置当前用户自启动"""
+        global startUpArgv
         run = 0
         while whileTrue or run == 0:
             run += 1
             reg = """SOFTWARE\Microsoft\Windows\CurrentVersion\Run""" # HKEY_CURRENT_USER\
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,reg,access=winreg.KEY_ALL_ACCESS)
             if not setFile:
-                winreg.SetValueEx(key,'systemPowerOff',0,winreg.REG_SZ,'"{}"'.format(argv[0]))
+                winreg.SetValueEx(key,'systemPowerOff',0,winreg.REG_SZ,'"{}"{}'.format(argv[0],startUpArgv))
             else:
-                winreg.SetValueEx(key,'systemPowerOff',0,winreg.REG_SZ,'"{}"'.format(setFile))
+                winreg.SetValueEx(key,'systemPowerOff',0,winreg.REG_SZ,'"{}"{}'.format(setFile,startUpArgv))
             winreg.CloseKey(key)
 
 
@@ -186,8 +189,13 @@ for f in mainList:
 #         processList.append(p)
 
 
+if '-powerOffInWorkDay' in argv:
+    tips = Thread(target=win32gui.MessageBox,args=(None, "请不要在工作日关机,若误报请联系开发者.\n按下确定键以关闭提示窗口...", '提示',(win32con.MB_OK | win32con.MB_ICONERROR)),daemon=True)
+
+
 def wndproc(hwnd, msg, wparam, lparam): #关机事件后执行的函数
     if datetime.today().isoweekday() < 6 and not time_check(setTime)[-1]:
+        startUpArgv = ' -powerOffInWorkDay'
         run('shutdown /r /f /t 3',shell=True)
         win32gui.MessageBox(None, "非法的操作：工作日关机(将自动重启,若误报请联系开发者.)", '非法的操作：工作日关机(将自动重启,若误报请联系开发者.)',(win32con.MB_OK | win32con.MB_ICONERROR))
         return 0
@@ -239,7 +247,11 @@ while True:
     if (getTime() - lowTime >= 0.1 and not exit) or debug:
         lowTime = getTime()
         win32gui.PumpWaitingMessages() #捕捉关机主程序
-        if time_check(setTime)[-1] or debug:
+        if time_check(setPowerOffTime,addSec=-60)[-1]:
+            run('shutdown /s /f /t 60',shell=True)
+            exit = True
+            powerOffTime = getTime()
+        elif time_check(setTime)[-1] or debug:
             if j >= maxJ or debug:
                 rec = mainWindow()
                 if rec == 1:
@@ -252,3 +264,8 @@ while True:
                 elif rec == 4:
                     j = -1
                     run("explorer {}".format(url),shell=True)
+    if getTime() - powerOffTime > 60:
+        exit = False
+        run('shutdown /s /f /t 0',shell=True)
+
+
