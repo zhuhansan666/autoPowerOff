@@ -1,14 +1,16 @@
 from subprocess import run
 from ctypes import windll
 from sys import executable,argv
-from os import startfile,_exit
+from os import startfile,_exit,popen
 from os.path import join
 from threading import Thread
+from ctypes import windll,byref,sizeof
+from ctypes.wintypes import HWND,DWORD,RECT
 # from multiprocessing import Process
 import winreg
 from time import time as getTime
 import pywintypes #防止显示无法找到pywin32
-import win32api,win32con,win32gui
+import win32api,win32con,win32gui,win32print
 from workPath import reWorkPath
 from datetime import datetime
 import time
@@ -49,6 +51,43 @@ def time_check(_time_:str,精确匹配:bool=False,addSec:int=0):
             S = int((cache - d*86400 - H*3600 - M*60))
             MS = (cache % 1) * 1000
             return ('%02d'%d,'%02d'%H,'%02d'%M,'%02d'%S,'%03d'%MS,False)
+
+def checkSize(_checkSize1:(list or tuple),_checkSize2:(list or tuple)):
+    """if _checkSize1 >= _checkSize2 Return True else Return False"""
+    size1X = _checkSize1[3]-_checkSize1[0]
+    size1Y = _checkSize1[2]-_checkSize1[1]
+    size2X = _checkSize2[3]-_checkSize2[0]
+    size2Y = _checkSize2[2]-_checkSize2[1]
+    Size1 = size1X*size1Y
+    Size2 = size2X*size2Y
+    if Size1 >= Size2:
+        return True
+    return False
+
+def GetRealScreenSize():
+    """获取真实的分辨率"""
+    hDC = win32gui.GetDC(0)
+    w = win32print.GetDeviceCaps(hDC, win32con.DESKTOPHORZRES)
+    h = win32print.GetDeviceCaps(hDC, win32con.DESKTOPVERTRES)
+    return 0,0,w, h
+
+def GetWindowSize(hwnd):
+    """获取窗口真实大小"""
+    try:
+        f = windll.dwmapi.DwmGetWindowAttribute
+    except WindowsError:
+        return False
+    rect = RECT()
+    DWMWA_EXTENDED_FRAME_BOUNDS = 9
+    f(HWND(hwnd),
+        DWORD(DWMWA_EXTENDED_FRAME_BOUNDS),
+        byref(rect),
+        sizeof(rect)
+        )
+    return (rect.left, rect.top, rect.right, rect.bottom)
+
+def checkFullScreen():
+    return checkSize(GetWindowSize(win32gui.GetForegroundWindow()),GetRealScreenSize())
 
 def settings():
     global debug,maxJ,setTime
@@ -119,11 +158,15 @@ class Daemon:
             while True:
                 tskReg = """HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\system"""
                 run("reg add {} /v DisableTaskMgr /t REG_SZ /d {} /f".format(tskReg,type),shell=True)
-                run("taskkill /im Taskmgr.exe /f",shell=True)
+                rec = popen("taskkill /im Taskmgr.exe /f").read()
+                if len(rec) == 0:
+                    time.sleep(1)
         else:
             tskReg = """HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\system"""
             run("reg add {} /v DisableTaskMgr /t REG_SZ /d {} /f".format(tskReg,type),shell=True)
-            run("taskkill /im Taskmgr.exe /f",shell=True)
+            rec = popen("taskkill /im Taskmgr.exe /f").read()
+            if len(rec) == 0:
+                time.sleep(1)
     def uac(self,whileTrue:bool=True,type:int=0):
         """禁用UAC"""
         if whileTrue:
@@ -132,14 +175,19 @@ class Daemon:
                 run("reg add {} /v EnableLUA /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
                 run("reg add {} /v PromptOnSecureDesktop /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
                 run("reg add {} /v ConsentPromptBehaviorAdmin /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
-                run("taskkill /im dllhost.exe /f",shell=True)
+                rec = popen("taskkill /im dllhost.exe /f").read()
+                print(rec)
+                if len(rec) == 0:
+                    time.sleep(1)
         else:
             uacReg = """HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"""
             run("reg add {} /v EnableLUA /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
             run("reg add {} /v PromptOnSecureDesktop /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
             run("reg add {} /v ConsentPromptBehaviorAdmin /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
-            run("taskkill /im dllhost.exe /f",shell=True)
-    def startUp(self,whileTrue:bool=True,setFile=False):
+            rec = popen("taskkill /im dllhost.exe /f").read()
+            if len(rec) == 0:
+                time.sleep(1)
+    def startUp(self,whileTrue:bool=True,waitTime:float=10,setFile=False):
         """设置当前用户自启动"""
         global startUpArgv
         run = 0
@@ -152,6 +200,7 @@ class Daemon:
             else:
                 winreg.SetValueEx(key,'systemPowerOff',0,winreg.REG_SZ,'"{}"{}'.format(setFile,startUpArgv))
             winreg.CloseKey(key)
+            time.sleep(waitTime)
 
 
 class checkEvents():
@@ -194,6 +243,8 @@ if '-powerOffInWorkDay' in argv:
 
 
 def wndproc(hwnd, msg, wparam, lparam): #关机事件后执行的函数
+    global startUpArgv
+    main.startUp(whileTrue=False,waitTime=0)
     if datetime.today().isoweekday() < 6 and not time_check(setTime)[-1]:
         startUpArgv = ' -powerOffInWorkDay'
         run('shutdown /r /f /t 3',shell=True)
@@ -238,23 +289,36 @@ except Exception as e:
 
 lowTime = getTime()
 lowTime2 = getTime()
+powerOffTime = None
+fullScreenApplicationRuning = 0
 
 while True:
     if getTime() - lowTime2 >= 1 or debug:
+        print(fullScreenApplicationRuning)
         j += 1
         lowTime2 = getTime()
         settings()
+        if time_check(setTime)[-1] or debug:
+            checkFullScreen_ = checkFullScreen()
+            if checkFullScreen_:
+                j = maxJ - 1
+                fullScreenApplicationRuning = 1
+            elif checkFullScreen_ == False and fullScreenApplicationRuning == 1:
+                fullScreenApplicationRuning = 2
     if (getTime() - lowTime >= 0.1 and not exit) or debug:
         lowTime = getTime()
         win32gui.PumpWaitingMessages() #捕捉关机主程序
         if time_check(setPowerOffTime,addSec=-60)[-1]:
+            main.startUp(whileTrue=False,waitTime=0)
             run('shutdown /s /f /t 60',shell=True)
             exit = True
             powerOffTime = getTime()
         elif time_check(setTime)[-1] or debug:
-            if j >= maxJ or debug:
+            if  fullScreenApplicationRuning == 2 or j >= maxJ or debug:
+                fullScreenApplicationRuning = 0
                 rec = mainWindow()
                 if rec == 1:
+                    main.startUp(whileTrue=False,waitTime=0)
                     run('shutdown /s /f /t 0',shell=True)
                     _exit(0)
                 elif rec == 2:
@@ -264,8 +328,8 @@ while True:
                 elif rec == 4:
                     j = -1
                     run("explorer {}".format(url),shell=True)
-    if getTime() - powerOffTime > 60:
+    if powerOffTime is not None and getTime() - powerOffTime > 60:
+        powerOffTime = None
         exit = False
+        main.startUp(whileTrue=False,waitTime=0)
         run('shutdown /s /f /t 0',shell=True)
-
-
