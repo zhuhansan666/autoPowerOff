@@ -1,9 +1,11 @@
 from workPath import reWorkPath
-from os.path import join
+from os.path import join,exists
 from os import _exit
 from PygameButtonClass import button
 from time import time
 import pygame,win32gui,win32con,win32com.client
+from json import loads,dumps
+from json.decoder import JSONDecodeError
 
 
 def 活动窗口(hwnd):
@@ -19,9 +21,14 @@ def head(hwnd): #置顶
 
 def mainWindow():
     pygame.init()
-    
     workPath = reWorkPath()
 
+    configJson = open(join(workPath,'./settings.json'),encoding='utf-8')
+    try:
+        language = str(loads(configJson.read())["language"]).lower()
+    except:
+        language = 'zh_cn'.lower()
+    
 
     colors = {
         "w":(255,255,255),
@@ -29,7 +36,52 @@ def mainWindow():
         "blue":(43, 16, 195),
     }
 
-    sound = pygame.mixer.Sound(join(workPath,'./sounds/定时关机提示音.wav'))
+    fontFile = join(workPath,"./Font/MiSans-Bold.ttf")
+    fontSize = 29
+    fontbigSize = 39
+    阴影圆角 = 12
+    阴影缩放 = 10
+    mainY = 70
+    titleY = 15
+    waitS = 3
+    githubButtonPos = (27,67)
+    githubButtonSize = 20
+
+    textDic = {
+        "button1":"  确定  ",
+        "button2":" 稍等,程序后台检测 ",
+        "button3":" 取消,我现在退出程序 ",
+        "githubButton":"github项目页面",
+        "mainText":"已达预定时间,将在{}秒后自动关机~",
+        "exitText":"程序已退出,将在{}秒后自动关闭本窗口...",
+        "buttonSize":fontSize,
+        "githubButtonSize":githubButtonSize,
+        "fontbigSize":fontbigSize,
+        "soundFile":str(join(workPath,'./sounds/定时关机提示音.wav'))
+    }
+
+    try:
+        with open(join(workPath,'./ui/{}.json'.format(language)),encoding="utf-8") as f:
+            try:
+                textDic = loads(f.read())
+            except JSONDecodeError:
+                pass
+    except FileNotFoundError:
+        pass
+
+    if "buttonSize" not in textDic:
+        textDic["buttonSize"] = fontSize
+    if "soundFile" not in textDic or not exists(join(workPath,textDic["soundFile"])) or len(str(textDic["soundFile"]).replace(' ','')) <= 0:
+        textDic["soundFile"] = str(join(workPath,'./sounds/zh_cn.wav'))
+    if "githubButtonSize" not in textDic:
+        textDic["githubButtonSize"] = githubButtonSize
+    if "fontbigSize" not in textDic:
+        textDic["fontbigSize"] = fontbigSize
+
+    font =  pygame.font.Font(fontFile,textDic["buttonSize"])
+    fontbig =  pygame.font.Font(fontFile,textDic["fontbigSize"])
+
+    sound = pygame.mixer.Sound(join(workPath,textDic["soundFile"]))
     sound.set_volume(1)
     sound.play()
 
@@ -47,23 +99,12 @@ def mainWindow():
 
     pygame.display.flip()
 
-    fontFile = join(workPath,"./Font/MiSans-Bold.ttf")
-    fontSize = 29
-    阴影圆角 = 12
-    阴影缩放 = 10
-    mainY = 70
-    titleY = 15
-    waitS = 3
-    font =  pygame.font.Font(fontFile,fontSize)
-    fontbig =  pygame.font.Font(fontFile,fontSize+10)
-    githubButtonPos = (27,67)
-    githubButtonSize = 20
 
-    b1 = button("确定,我现在关机",(5,mainY),('  确定  ',fontFile,"file",fontSize,colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
-    b2 = button("稍等,程序后台检测",(30,mainY),(' 稍等,程序后台检测 ',fontFile,"file",fontSize,colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
-    b3 = button("取消,我现在退出程序",(300,mainY),(' 取消,我现在退出程序 ',fontFile,"file",fontSize,colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
-    b4 = button("github",githubButtonPos,('github项目页面',fontFile,"file",githubButtonSize,colors["blue"],False,False,False),screen)#,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
-    surface = fontbig.render("已达预定时间,将在10秒后自动关机~",True,colors["b"])
+    b1 = button("b1",(5,mainY),(textDic["button1"],fontFile,"file",textDic["buttonSize"],colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
+    b2 = button("b2",(30,mainY),(textDic["button2"],fontFile,"file",textDic["buttonSize"],colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
+    b3 = button("b3",(300,mainY),(textDic["button3"],fontFile,"file",textDic["buttonSize"],colors["b"],False,False,False),screen,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
+    b4 = button("github",githubButtonPos,(textDic["githubButton"],fontFile,"file",githubButtonSize,colors["blue"],False,False,False),screen)#,选中阴影=True,阴影颜色=(127,127,127),阴影透明度=200,阴影圆角=阴影圆角,阴影缩放=阴影缩放)
+    surface = fontbig.render(textDic["mainText"].format(10),True,colors["b"])
     showS = (round(screen.get_width()/2-surface.get_width()/2),titleY)
 
     lowTime = time()
@@ -75,7 +116,7 @@ def mainWindow():
         if time() - lowTime2 >= 1:
             lowTime2 = time()
             活动窗口(hwnd)
-        surface = fontbig.render("已达预定时间,将在{}秒后自动关机~".format(outTimeS-round(time()-lowTime)),True,colors["b"])
+        surface = fontbig.render(textDic["mainText"].format(outTimeS-round(time()-lowTime)),True,colors["b"])
         showS = (round(screen.get_width()/2-surface.get_width()/2),titleY)
         clock.tick(60)
         evensList = pygame.event.get()
@@ -107,7 +148,7 @@ def mainWindow():
                         _exit(0)
                 clock.tick(60)
                 screen.fill(colors.get("w"))
-                surface = font.render("程序已退出,将在{}秒后自动关闭本窗口...".format(waitS-i//60),True,colors["b"])
+                surface = font.render(textDic["exitText"].format(waitS-i//60),True,colors["b"])
                 show = (round(screen.get_width()/2-surface.get_width()/2),round(screen.get_height()/2-surface.get_height()/2))
                 screen.blit(surface,show)
                 pygame.display.update()

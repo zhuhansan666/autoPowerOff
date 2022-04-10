@@ -1,7 +1,7 @@
 from subprocess import run
 from ctypes import windll
 from sys import executable,argv
-from os import startfile,_exit,popen
+from os import startfile,_exit,popen,listdir
 from os.path import join
 from threading import Thread
 from ctypes import windll,byref,sizeof
@@ -16,11 +16,13 @@ from datetime import datetime
 import time
 from ui import mainWindow
 import pynput
-from json import loads
+from json import loads,dumps
 from json.decoder import JSONDecodeError
+from settingsui import main
 
 url = """https://github.com/zhuhansan666/autoPowerOff"""
 startUpArgv = ''
+filesList = []
 
 def time_check(_time_:str,精确匹配:bool=False,addSec:int=0):
     '''时间格式:%Y-%m-%d/%H:%M:%S 或 %H:%M:%S'''
@@ -90,7 +92,7 @@ def checkFullScreen():
     return checkSize(GetWindowSize(win32gui.GetForegroundWindow()),GetRealScreenSize())
 
 def settings():
-    global debug,maxJ,setTime
+    global debug,maxJ,setTime,setPowerOffTime
     try:
         jsonFile = open(join(workPath,'./settings.json'))
         jsonInFo = loads(jsonFile.read())
@@ -106,27 +108,59 @@ def settings():
                 maxJ = int(maxJTemp)
         if 'debug' in jsonInFo:
             debug = bool(jsonInFo['debug'])
+        if 'poTime' in jsonInFo:
+            poTimeTemp = jsonInFo['opTime']
+            if time_check(poTimeTemp) != "错误:时间格式问题":
+                setPowerOffTime = poTimeTemp
 
     except FileNotFoundError:
-        pass
+        jsonFile = open(join(workPath,'./settings.json'),"w+")
+        jsonDic = {
+            "time":setTime,
+            "waitTime":maxJ,
+            "language":"zh_cn"
+            }
+        jsonFile.write(dumps(jsonDic))
+
     except JSONDecodeError:
-        pass
+        jsonFile = open(join(workPath,'./settings.json'),"w+")
+        jsonDic = {
+            "time":setTime,
+            "waitTime":maxJ,
+            "language":"zh_cn"
+            }
+        jsonFile.write(dumps(jsonDic))
 
 
 workPath = reWorkPath()
 
+# configJson = open(join(workPath,'./config.json'),"w+",encoding='utf-8')
+
+
 maxJ = 60
 j = -1 #主操作检测变量
-setTime = "16:15:00"
+setTime = "17:25:00"
 setPowerOffTime = "17:27:00"
 debug = False
 exit = False
 
+files = [
+    join(workPath,'./images/icon.png'),
+    join(workPath,'./Font/MiSans-Bold.ttf'),
+]
+
+for _f in listdir(join(workPath,'./sounds/')):
+    files.append(join(workPath,'./sounds/%s'%_f))
+
+del _f
+
+for _f in listdir(join(workPath,'./ui/')):
+    files.append(join(workPath,'./ui/%s'%_f))
+
 #文件初始化（避免删除
 
-file1 = open(join(workPath,'./images/icon.png'))
-file2 = open(join(workPath,'./Font/MiSans-Bold.ttf'))
-file3 = open(join(workPath,'./sounds/定时关机提示音.wav'))
+for file in files:
+    filesList.append(open(file))
 settings()
 
 #结束文件初始化（避免删除
@@ -176,7 +210,6 @@ class Daemon:
                 run("reg add {} /v PromptOnSecureDesktop /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
                 run("reg add {} /v ConsentPromptBehaviorAdmin /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
                 rec = popen("taskkill /im dllhost.exe /f").read()
-                print(rec)
                 if len(rec) == 0:
                     time.sleep(1)
         else:
@@ -289,22 +322,23 @@ except Exception as e:
 
 lowTime = getTime()
 lowTime2 = getTime()
+lowTime3 = getTime()
 powerOffTime = None
 fullScreenApplicationRuning = 0
 
 while True:
     if getTime() - lowTime2 >= 1 or debug:
-        print(fullScreenApplicationRuning)
         j += 1
         lowTime2 = getTime()
         settings()
-        if time_check(setTime)[-1] or debug:
-            checkFullScreen_ = checkFullScreen()
-            if checkFullScreen_:
-                j = maxJ - 1
-                fullScreenApplicationRuning = 1
-            elif checkFullScreen_ == False and fullScreenApplicationRuning == 1:
-                fullScreenApplicationRuning = 2
+    if (getTime() - lowTime3 >= 0.5 and time_check(setTime)[-1]) or debug:
+        checkFullScreen_ = checkFullScreen()
+        if checkFullScreen_:
+            j = maxJ - 10
+            # lowTime = -1
+            fullScreenApplicationRuning = 1
+        elif checkFullScreen_ == False and fullScreenApplicationRuning == 1:
+            fullScreenApplicationRuning = 2
     if (getTime() - lowTime >= 0.1 and not exit) or debug:
         lowTime = getTime()
         win32gui.PumpWaitingMessages() #捕捉关机主程序
