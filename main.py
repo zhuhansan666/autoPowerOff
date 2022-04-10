@@ -18,7 +18,7 @@ from ui import mainWindow
 import pynput
 from json import loads,dumps
 from json.decoder import JSONDecodeError
-from settingsui import main
+# from settngsui import main as settingsUI
 
 url = """https://github.com/zhuhansan666/autoPowerOff"""
 startUpArgv = ''
@@ -108,8 +108,10 @@ def settings():
                 maxJ = int(maxJTemp)
         if 'debug' in jsonInFo:
             debug = bool(jsonInFo['debug'])
+        else:
+            debug = False
         if 'poTime' in jsonInFo:
-            poTimeTemp = jsonInFo['opTime']
+            poTimeTemp = jsonInFo['poTime']
             if time_check(poTimeTemp) != "错误:时间格式问题":
                 setPowerOffTime = poTimeTemp
 
@@ -118,6 +120,7 @@ def settings():
         jsonDic = {
             "time":setTime,
             "waitTime":maxJ,
+            "poTime":setPowerOffTime,
             "language":"zh_cn"
             }
         jsonFile.write(dumps(jsonDic))
@@ -133,6 +136,8 @@ def settings():
 
 
 workPath = reWorkPath()
+
+startfile(join(workPath,'settings.exe'))
 
 # configJson = open(join(workPath,'./config.json'),"w+",encoding='utf-8')
 
@@ -331,7 +336,7 @@ while True:
         j += 1
         lowTime2 = getTime()
         settings()
-    if (getTime() - lowTime3 >= 0.5 and time_check(setTime)[-1]) or debug:
+    if (getTime() - lowTime3 >= 5 and time_check(setTime)[-1]) or debug:
         checkFullScreen_ = checkFullScreen()
         if checkFullScreen_:
             j = maxJ - 10
