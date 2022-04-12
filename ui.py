@@ -57,7 +57,8 @@ def mainWindow():
         "buttonSize":fontSize,
         "githubButtonSize":githubButtonSize,
         "fontbigSize":fontbigSize,
-        "soundFile":str(join(workPath,'./sounds/定时关机提示音.wav'))
+        "soundFile":str(join(workPath,'./sounds/定时关机提示音.wav')),
+        "title":str("自动关机提醒 V2.0")
     }
 
     try:
@@ -77,6 +78,8 @@ def mainWindow():
         textDic["githubButtonSize"] = githubButtonSize
     if "fontbigSize" not in textDic:
         textDic["fontbigSize"] = fontbigSize
+    if "title" not in textDic:
+        textDic["title"] = "自动关机提醒 V2.0"
 
     font =  pygame.font.Font(fontFile,textDic["buttonSize"])
     fontbig =  pygame.font.Font(fontFile,textDic["fontbigSize"])
@@ -89,7 +92,7 @@ def mainWindow():
     icon = pygame.image.load(join(workPath,"./images/icon.png"))
     pygame.display.set_icon(icon)
 
-    pygame.display.set_caption("自动关机提醒 2.0")
+    pygame.display.set_caption(textDic["title"])
 
     screen = pygame.display.set_mode((687,150),pygame.NOFRAME)
     screen.fill(colors.get("w"))

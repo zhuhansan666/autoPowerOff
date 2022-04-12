@@ -1,0 +1,12 @@
+{
+    "button1":" OK",
+    "button2":"Wait a minute, program background detection",
+    "button3":"Cancel, I now exit the program",
+    "githubButton":"GitHub project",
+    "mainText":"The predetermined time has been reached and will be automatically shut down after {} S~",
+    "exitText":"The program has exited and will automatically close this window after {} seconds...",
+    "buttonSize":15,
+    "fontbigSize":14,
+    "soundFile":"./sounds/en_us.wav",
+    "title":"Auto Power Off Reminder 2.0"
+}
