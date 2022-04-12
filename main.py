@@ -139,15 +139,13 @@ def settings():
             tempDic["language"] = "zh_cn"
 
         jsonFileW.write(dumps(tempDic))
-    except Exception as e:
-        print(e)
-    # except FileNotFoundError:
-    #     jsonFileW = open(join(workPath,'./settings.json'),"w+",encoding='utf-8')
-    #     jsonFileW.write(dumps(jsonDic))
+    except FileNotFoundError:
+        jsonFileW = open(join(workPath,'./settings.json'),"w+",encoding='utf-8')
+        jsonFileW.write(dumps(jsonDic))
 
-    # except JSONDecodeError:
-    #     jsonFileW = open(join(workPath,'./settings.json'),"w+",encoding='utf-8')
-    #     jsonFileW.write(dumps(jsonDic))
+    except JSONDecodeError:
+        jsonFileW = open(join(workPath,'./settings.json'),"w+",encoding='utf-8')
+        jsonFileW.write(dumps(jsonDic))
 
 
 workPath = reWorkPath()
