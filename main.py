@@ -94,15 +94,15 @@ def checkFullScreen():
     return checkSize(GetWindowSize(win32gui.GetForegroundWindow()),GetRealScreenSize())
 
 def settings():
-    jsonFileR = open(join(workPath,'./settings.json'),"r+",encoding='utf-8')
     global debug,maxJ,setTime,setPowerOffTime
     jsonDic = {
-            "time":setTime,
-            "waitTime":maxJ,
-            "poTime":setPowerOffTime,
-            "language":"zh_cn"
-            }
+                "time":setTime,
+                "waitTime":maxJ,
+                "poTime":setPowerOffTime,
+                "language":"zh_cn"
+                }
     try:
+        jsonFileR = open(join(workPath,'./settings.json'),"r+",encoding='utf-8')
         tempDic = jsonInFo = loads(jsonFileR.read())
         jsonFileW = open(join(workPath,'./settings.json'),"w+",encoding='utf-8')
         if 'time' in jsonInFo:
