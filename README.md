@@ -1,4 +1,4 @@
-Version:  Releases-WIn64-1.2.2
+Version:  Releases-WIn64-1.3.1
 
 *这个项目是用来定时关机的*
 
