@@ -3,9 +3,9 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QFile
 from PySide2.QtGui import QIcon
 from workPath import reWorkPath
-from os.path import join,exists
-from os import _exit
+from os.path import join
 from json import loads,dumps
+from threading import Thread
 import time
 import wx
 import wx.adv
@@ -42,48 +42,47 @@ def time_check(_time_:str,精确匹配:bool=False,addSec:int=0):
 
 workPath = reWorkPath()
 
-if exists(join(workPath,'settingsRuning.log')):
-    _exit(0)
-
-logF = open(join(workPath,'settingsRuning.log'),"w+",encoding='utf-8')
-logF.write('')
-
-
 class Stats:
 
     def __init__(self):
-        self.languagesList = [
+        self.languagesList = [ #对应文件(./ui/*.json)
             "zh_cn",
             "en_us",
         ]
+        self.languages = [ #显示内容(需一一对应)
+            "简体中文",
+            "English(US)",
+        ]
+        self.languagesDic = {}
+        for i in range(len(self.languagesList)):
+            self.languagesDic[self.languagesList[i]] = "{}".format(i)
 
-        self.language = "zh_cn"
+        self.language = self.languagesList[0]
         # 从文件中加载UI定义
         # 从 UI 定义中动态 创建一个相应的窗口对象
         # 注意：里面的控件对象也成为窗口对象的属性了
         qfileTemp = QFile(join(workPath,'./qtui/main.ui'))
         qfileTemp.open(QFile.ReadOnly)
-        qfileTemp.close()
+        qfileTemp.close
 
         # 比如 self.ui.button , self.ui.textEdit
         self.ui = QUiLoader().load(join(workPath,'./qtui/main.ui'))
         self.ui.setWindowIcon(QIcon(join(workPath,'./images/icon.png')))
-        SysTray = QSystemTrayIcon(self.ui)
-        SysTray.setIcon(QIcon(join(workPath,'./images/icon.png')))
+        # SysTray = QSystemTrayIcon(self.ui)
+        # SysTray.setIcon(QIcon(join(workPath,'./images/icon.png')))
         self.ui.setWindowTitle('自动关机 - 设置')
 
-        SysTrayMenu = QMenu()
-        SysTrayMenu.addAction(QAction("设置",triggered = self.ui.show))
-        SysTray.setContextMenu(SysTrayMenu)
-        SysTrayMenu.show()
+        # SysTrayMenu = QMenu()
+        # SysTrayMenu.addAction(QAction("设置",triggered = self.ui.show))
+        # SysTray.setContextMenu(SysTrayMenu)
+        # SysTrayMenu.show()
         # SysTray.showMessage("123",'Test',0)
 
     #     self.ui.Button.clicked.connect(self.handleCalc)
         self.ui.setFixedSize(500, 330) # 禁用最大化和拖拽改变大小
 
         with open(join(workPath,'./settings.json'),"r+",encoding='utf-8') as jsonF:
-                jsonDic = loads(jsonF.read())
-
+            jsonDic = loads(jsonF.read())
         self.ui.spinBoxH.setMaximum(23)
         self.ui.spinBoxH.setMinimum(0)
         self.ui.spinBoxH.setValue(int(str(jsonDic["time"]).split(':')[0]))
@@ -102,55 +101,60 @@ class Stats:
         self.ui.spinBoxS2.setMaximum(60)
         self.ui.spinBoxS2.setMinimum(0)
         self.ui.spinBoxS2.setValue(int(str(jsonDic["poTime"]).split(':')[2]))
+        self.ui.waitTimeBox.setValue(jsonDic['waitTime'])
+        self.ui.chooseBox.addItems(self.languages)
+        self.ui.chooseBox.setCurrentIndex(int(self.languagesDic[jsonDic["language"]]))
 
         self.ui.chooseBox.currentIndexChanged.connect(self.changeLanguage)
-        self.ui.OKButton.clicked.connect(self.okButtonDown)
+        self.ui.OKButton.clicked.connect(lambda:self.okButtonDown(apply=False))
         self.ui.CloseButton.clicked.connect(self.CloseButtonDown)
+        self.ui.ApplyButton.clicked.connect(lambda:self.okButtonDown(apply=True))
 
     def changeLanguage(self,num):
         self.language = self.languagesList[num]
     def getLanguage(self) -> str:
         return self.language
 
-    def okButtonDown(self):
-        setTime = "{}:{}:{}".format(self.ui.spinBoxH.value(),self.ui.spinBoxM.value(),self.ui.spinBoxS.value())
-        setPowerOffTime = "{}:{}:{}".format(self.ui.spinBoxH2.value(),self.ui.spinBoxM2.value(),self.ui.spinBoxS2.value())
+    def okButtonDown(self,apply=False):
+        setTime = "{}:{}:{}".format(str(self.ui.spinBoxH.value()).zfill(2),str(self.ui.spinBoxM.value()).zfill(2),str(self.ui.spinBoxS.value()).zfill(2)) #.zfill(int) 补零，仅限字符串
+        setPowerOffTime = "{}:{}:{}".format(str(self.ui.spinBoxH2.value()).zfill(2),str(self.ui.spinBoxM2.value()).zfill(2),str(self.ui.spinBoxS2.value()).zfill(2))
         try:
             # 语言设置
             with open(join(workPath,'./settings.json'),"r+",encoding='utf-8') as jsonF:
                 jsonDic = loads(jsonF.read())
-            with open(join(workPath,'./settings.json'),"r+",encoding='utf-8') as jsonF:
+            with open(join(workPath,'./settings.json'),"w+",encoding='utf-8') as jsonF:
                 jsonDic["language"] = self.getLanguage()
                 # 时间设置
                 if time_check(setTime) != "错误:时间格式问题":
                     jsonDic["time"] = setTime
                 if time_check(setPowerOffTime) != "错误:时间格式问题":
                     jsonDic["poTime"] = setPowerOffTime
+                jsonDic['waitTime'] = self.ui.waitTimeBox.value()
                 # 写入
                 jsonF.write(dumps(jsonDic))
-            self.ui.hide()
+            if not apply: #是否为应用更改模式
+                QApplication.quit() #否,则退出
         except Exception:
             pass
         
 
 
     def CloseButtonDown(self):
-        self.ui.hide()
+        QApplication.quit()
 
 app = QApplication([])
-stats = Stats()
 
-def show():   
-    global stats 
+def show():
+    stats = Stats() 
     stats.ui.show()
     app.exec_()
 
 class MyTaskBarIcon(wx.adv.TaskBarIcon):
-    ICON = join(workPath,"./icon.ico")  # 图标地址
+    ICON = join(workPath,"icon.ico")  # 图标地址
     ID_ABOUT = wx.NewId()  # 菜单选项“关于”的ID
     ID_EXIT = wx.NewId()  # 菜单选项“退出”的ID
     ID_SHOW_WEB = wx.NewId()  # 菜单选项“显示页面”的ID
-    TITLE = "" #鼠标移动到图标上显示的文字
+    TITLE = "自动关机设置" #鼠标移动到图标上显示的文字
 
     def __init__(self):
         wx.adv.TaskBarIcon.__init__(self)
