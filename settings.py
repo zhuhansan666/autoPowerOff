@@ -1,11 +1,11 @@
-from PySide2.QtWidgets import QApplication, QSystemTrayIcon, QAction, QMenu
+from PySide2.QtWidgets import QApplication, QMainWindow
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QFile
 from PySide2.QtGui import QIcon
 from workPath import reWorkPath
 from os.path import join
 from json import loads,dumps
-from threading import Thread
+# from threading import Thread
 import time
 import wx
 import wx.adv
@@ -42,9 +42,10 @@ def time_check(_time_:str,精确匹配:bool=False,addSec:int=0):
 
 workPath = reWorkPath()
 
-class Stats:
-
+class Stats():
     def __init__(self):
+        super(Stats,self).__init__()
+
         self.languagesList = [ #对应文件(./ui/*.json)
             "zh_cn",
             "en_us",
@@ -136,21 +137,25 @@ class Stats:
                 QApplication.quit() #否,则退出
         except Exception:
             pass
-        
-
+        if not apply:
+            self.ui.close()
 
     def CloseButtonDown(self):
-        QApplication.quit()
+        self.ui.close()
+
 
 app = QApplication([])
 
 def show():
-    stats = Stats() 
+    stats = Stats()
     stats.ui.show()
     app.exec_()
 
+# test = Thread(target=show,kwargs={})
+# test.start()
+
 class MyTaskBarIcon(wx.adv.TaskBarIcon):
-    ICON = join(workPath,"icon.ico")  # 图标地址
+    ICON = join(workPath,"./images/icon.png")  # 图标地址
     ID_ABOUT = wx.NewId()  # 菜单选项“关于”的ID
     ID_EXIT = wx.NewId()  # 菜单选项“退出”的ID
     ID_SHOW_WEB = wx.NewId()  # 菜单选项“显示页面”的ID

@@ -147,8 +147,16 @@ def settings():
         jsonFileW = open(join(workPath,'./settings.json'),"w+",encoding='utf-8')
         jsonFileW.write(dumps(jsonDic))
 
+# def fontInstall(fontfile,fileName,fontName):
+#     run("""copy "{}" "%WINDIR%\Fonts""".format(fontfile),shell=True)
+#     run("""reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts" /v "{} (TrueType)" /t REG_SZ /d {} /f""".format(fontName,fileName),shell=True)
+
 
 workPath = reWorkPath()
+
+# if exists(join(workPath,'./Font/MiSans-QTUI.ttf')):
+#     fontInstall(join(workPath,r'.\Font\MiSans-QTUI.ttf'),'MiSans-QTUI.ttf','MiSans-QTUI.ttf')
+#     # remove(join(workPath,'./Font/MiSans-QTUI.ttf'))
 
 
 if exists(join(workPath,'autoPowerOffRuning')):
