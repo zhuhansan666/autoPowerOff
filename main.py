@@ -96,9 +96,9 @@ def checkFullScreen():
 def settings():
     global debug,maxJ,setTime,setPowerOffTime
     jsonDic = {
-                "time":setTime,
+                "time":reSetTime,
                 "waitTime":maxJ,
-                "poTime":setPowerOffTime,
+                "poTime":reSetPowerOffTime,
                 "language":"zh_cn"
                 }
     try:
@@ -175,14 +175,15 @@ runingFile = open(join(workPath,'autoPowerOffRuning'),"w+",encoding='utf-8')
 
 maxJ = 60
 j = -1 #主操作检测变量
-setTime = "17:25:00"
-setPowerOffTime = "17:27:00"
+setTime = reSetTime = "17:25:00"
+setPowerOffTime = reSetPowerOffTime = "17:27:00"
 debug = False
 exit = False
 
 files = [
     join(workPath,'./images/icon.png'),
     join(workPath,'./Font/MiSans-Bold.ttf'),
+    join(workPath,'./settings.json'),
 ]
 
 for _f in listdir(join(workPath,'./sounds/')):
@@ -192,10 +193,11 @@ for _f in listdir(join(workPath,'./ui/')):
     files.append(join(workPath,'./ui/%s'%_f))
 
 #文件初始化（避免删除
+settings()
 
 for file in files:
     filesList.append(open(file))
-settings()
+
 
 #结束文件初始化（避免删除
 
@@ -287,7 +289,7 @@ threadList = []
 # processList = []
 
 for f in mainList:
-    t = Thread(target=f,kwargs={'whileTrue':False},daemon=True)
+    t = Thread(target=f,kwargs={'whileTrue':True},daemon=True)
     t.start()
     threadList.append(t)
 
@@ -309,11 +311,13 @@ if '-powerOffInWorkDay' in argv:
 lowTime = getTime()
 lowTime2 = getTime()
 lowTime3 = getTime()
+lowTime4 = getTime()
 powerOffTime = None
 fullScreenApplicationRuning = 0
+__shutdown = False
 
 def mainCode():
-    global lowTime,lowTime2,lowTime3,debug,startUpArgv,j,maxJ,setTime,setPowerOffTime,fullScreenApplicationRuning,exit,powerOffTime,main
+    global lowTime,lowTime2,lowTime3,lowTime4,debug,startUpArgv,j,maxJ,setTime,setPowerOffTime,fullScreenApplicationRuning,exit,powerOffTime,main,__shutdown
     def wndproc(hwnd, msg, wparam, lparam): #关机事件后执行的函数
         global startUpArgv
         main.startUp(whileTrue=False,waitTime=0)
@@ -358,11 +362,11 @@ def mainCode():
         _exit(-1)
 
     while True:
-        if getTime() - lowTime2 >= 1 or debug:
+        if abs(getTime() - lowTime2) >= 1 or debug:
             j += 1
             lowTime2 = getTime()
             settings()
-        if (getTime() - lowTime3 >= 5 and time_check(setTime)[-1]) or debug:
+        if (abs(getTime() - lowTime3) >= 5 and time_check(setTime)[-1]) or debug:
             lowTime3 = getTime()
             checkFullScreen_ = checkFullScreen() #全屏检测
             if checkFullScreen_:
@@ -371,7 +375,7 @@ def mainCode():
                 fullScreenApplicationRuning = 1
             elif checkFullScreen_ == False and fullScreenApplicationRuning == 1:
                 fullScreenApplicationRuning = 2
-        if (getTime() - lowTime >= 0.1 and not exit) or debug:
+        if (abs(getTime() - lowTime) >= 0.5 and not exit) or debug:
             lowTime = getTime()
             win32gui.PumpWaitingMessages() #捕捉关机主程序
             if time_check(setPowerOffTime,addSec=-60)[-1]:
@@ -380,7 +384,7 @@ def mainCode():
                 exit = True
                 powerOffTime = getTime()
             elif time_check(setTime)[-1] or debug:
-                if  fullScreenApplicationRuning == 2 or j >= maxJ or debug:
+                if fullScreenApplicationRuning == 2 or j >= maxJ or debug: #jCheck,maxjCheck
                     fullScreenApplicationRuning = 0
                     rec = mainWindow()
                     if rec == 1:
@@ -399,6 +403,15 @@ def mainCode():
             exit = False
             main.startUp(whileTrue=False,waitTime=0)
             run('shutdown /s /f /t 0',shell=True)
+        if (abs(getTime() - lowTime4) >= 0.1) or debug:
+            lowTime4 = getTime()
+            if time_check(setPowerOffTime,addSec=-60)[-1] or time_check(setTime)[-1] or debug:
+                __shutdown = True
+            else:
+                __shutdown = False
+            shutdownFile = open(join(workPath,'autoPowerOffRuning'),"w+",encoding='utf-8')
+            shutdownFile.write(str(__shutdown))
+            shutdownFile.close()
 
 mainT = Thread(target=mainCode,kwargs={},daemon=True)
 mainT.start()

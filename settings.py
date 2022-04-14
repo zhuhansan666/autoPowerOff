@@ -1,10 +1,14 @@
-from PySide2.QtWidgets import QApplication, QMainWindow
+from subprocess import run
+from PySide2.QtWidgets import QApplication
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QFile
 from PySide2.QtGui import QIcon
 from workPath import reWorkPath
 from os.path import join
 from json import loads,dumps
+from win32api import MessageBox
+from threading import Thread
+
 # from threading import Thread
 import time
 import wx
@@ -134,11 +138,9 @@ class Stats():
                 # 写入
                 jsonF.write(dumps(jsonDic))
             if not apply: #是否为应用更改模式
-                QApplication.quit() #否,则退出
+                self.ui.close() #否,则退出
         except Exception:
             pass
-        if not apply:
-            self.ui.close()
 
     def CloseButtonDown(self):
         self.ui.close()
@@ -156,21 +158,31 @@ def show():
 
 class MyTaskBarIcon(wx.adv.TaskBarIcon):
     ICON = join(workPath,"./images/icon.png")  # 图标地址
-    ID_ABOUT = wx.NewId()  # 菜单选项“关于”的ID
-    ID_EXIT = wx.NewId()  # 菜单选项“退出”的ID
-    ID_SHOW_WEB = wx.NewId()  # 菜单选项“显示页面”的ID
+    ID_POWEROFF = wx.NewId()  # 菜单选项“关机”的ID
+    ID_SHOW_WEB = wx.NewId()  # 菜单选项“设置”的ID
     TITLE = "自动关机设置" #鼠标移动到图标上显示的文字
 
     def __init__(self):
         wx.adv.TaskBarIcon.__init__(self)
         self.SetIcon(wx.Icon(self.ICON), self.TITLE)  # 设置图标和标题
-        # self.Bind(wx.EVT_MENU, self.onAbout, id=self.ID_ABOUT)  # 绑定“关于”选项的点击事件
-        # self.Bind(wx.EVT_MENU, self.onExit, id=self.ID_EXIT)  # 绑定“退出”选项的点击事件
+        self.Bind(wx.EVT_MENU, self.onPowerOff, id=self.ID_POWEROFF)  # 绑定“关机”选项的点击事件
         self.Bind(wx.EVT_MENU, self.onShowWeb, id=self.ID_SHOW_WEB)  # 绑定“设置”选项的点击事件
 
-    # “显示页面”选项的事件处理器
+    # “设置”选项的事件处理器
     def onShowWeb(self, event):
         show()
+
+    def onPowerOff(self,event):
+        try:
+            with open(join(workPath,'autoPowerOffRuning'),'r+',encoding='utf-8') as shutdownFile:
+                r = str(shutdownFile.readline())
+                if r.replace(' ','') == "True":
+                    run("shutdown /s /f /t 0",shell=True)
+                elif r.replace(' ','') == "False":
+                    tempT = Thread(target=MessageBox,args=(None,"未达关机时间","错误",0),daemon=True) #0为OK按钮
+                    tempT.start()
+        except FileNotFoundError:
+            pass
 
     # 创建菜单选项
     def CreatePopupMenu(self):
@@ -181,7 +193,10 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
 
     # 获取菜单的属性元组
     def getMenuAttrs(self):
-        return [('设置', self.ID_SHOW_WEB)]
+        return [
+            ('设置', self.ID_SHOW_WEB),
+            ('关机',self.ID_POWEROFF),
+        ]
 
 
 class MyFrame(wx.Frame):
