@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -79,7 +79,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -145,7 +145,7 @@
         <property name="font">
          <font>
           <family>MiSans Semibold</family>
-          <pointsize>16</pointsize>
+          <pointsize>14</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -157,8 +157,16 @@
       </item>
       <item>
        <widget class="QComboBox" name="chooseBox">
+        <property name="font">
+         <font>
+          <family>MiSans Semibold</family>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="cursor">
-         <cursorShape>ArrowCursor</cursorShape>
+         <cursorShape>PointingHandCursor</cursorShape>
         </property>
        </widget>
       </item>
@@ -166,7 +174,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
