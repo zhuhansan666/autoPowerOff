@@ -14,7 +14,7 @@
 
 ## 使用须知<br>
 ·为保证此程序每次启动计算机均有效,我们将写入自启动项 （位于注册表 "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run",仅对当前用户有效）[(注册表是什么？)](https://docs.microsoft.com/zh-cn/windows/win32/sysinfo/registry)<br>
-·为保证此程序不被关闭,我们将禁用任务管理器并禁用UAC [(UAC是什么?)](https://docs.microsoft.com/zh-cn/windows/security/identity-protection/user-account-control/how-user-account-control-works)<br>
+·为保证此程序不被关闭,我们将禁用任务管理器并禁用UAC (但我们没有禁用"taskkill.exe")[(UAC是什么?)](https://docs.microsoft.com/zh-cn/windows/security/identity-protection/user-account-control/how-user-account-control-works)<br>
 
 ## 实现原理<br>
 ·关机使用shutdown指令,保证对Windows的兼容性
