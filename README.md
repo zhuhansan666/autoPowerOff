@@ -1,7 +1,7 @@
 # 自动定时关机小程序，解决学生pc管理员忘记关电脑的痛点
 
 ## 使用方法<br>
-·下载Release解压运行"autoPowerOff.exe"或克隆后使用python 3.9.8 (包含PySide2 + PythonWx + pywin32 + pynput库) 运行Main.py (上述方法首次运行均可能需要安装"MiSans-Semibold-首次运行需要安装此字体.ttf"字体)
+·下载Release解压运行"autoPowerOff.exe"或克隆后使用python 3.9.8 (包含PySide2 + PythonWx + pywin32 + pynput库) 运行main.py (上述方法首次运行均可能需要安装"MiSans-Semibold-首次运行需要安装此字体.ttf"字体)
 
 
 ## 设置项<br>
