@@ -17,11 +17,10 @@
 ## 使用须知<br>
 ·为保证此程序每次启动计算机均有效,我们将写入自启动项 （位于注册表 "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run",仅对当前用户有效）[(注册表是什么？)](https://docs.microsoft.com/zh-cn/windows/win32/sysinfo/registry)<br>
 ·为保证此程序不被关闭,我们将禁用任务管理器并禁用UAC (但我们没有禁用"taskkill.exe") [(UAC是什么?)](https://docs.microsoft.com/zh-cn/windows/security/identity-protection/user-account-control/how-user-account-control-works)<br>
-·**警告：** 我们注册了关机检测,若您在非关机时间关机我们将强制重启
+·**警告：** _我们注册了关机检测,若您在非关机时间关机我们将强制重启_<br>
 
 ## 实现原理<br>
-·关机使用shutdown指令,保证对Windows的兼容性
-·
+·关机使用shutdown指令,保证对Windows的兼容性<br>
 
 ## 感谢您的支持<br>
 ### [个人B站主页](https://space.bilibili.com/687039517)
