@@ -11,4 +11,4 @@
 
 ## 使用须知<br>
 ·为保证此程序每次启动计算机均有效,我们将写入自启动项 （位于[注册表](https://docs.microsoft.com/zh-cn/windows/win32/sysinfo/registry) "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run",仅对当前用户有效）<br>
-·为保证此程序不被关闭,我们将禁用任务管理器并禁用[UAC](https://docs.microsoft.com/zh-cn/windows/security/identity-protection/user-account-control/how-user-account-control-works) [UAC是什么?](https://docs.microsoft.com/zh-cn/windows/security/identity-protection/user-account-control/how-user-account-control-works)<br>
+·为保证此程序不被关闭,我们将禁用任务管理器并禁用UAC [(UAC是什么?)](https://docs.microsoft.com/zh-cn/windows/security/identity-protection/user-account-control/how-user-account-control-works)<br>
