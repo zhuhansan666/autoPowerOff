@@ -106,6 +106,8 @@ class Stats():
         self.ui.spinBoxS2.setMaximum(59)
         self.ui.spinBoxS2.setMinimum(0)
         self.ui.spinBoxS2.setValue(int(str(jsonDic["poTime"]).split(':')[2]))
+        self.ui.waitTimeBox.setMinimum(0)
+        self.ui.waitTimeBox.setMaximum(24*3600) # 设置最长等待时间 24小时（单位：秒）
         self.ui.waitTimeBox.setValue(jsonDic['waitTime'])
         self.ui.chooseBox.addItems(self.languages)
         self.ui.chooseBox.setCurrentIndex(int(self.languagesDic[jsonDic["language"]]))
