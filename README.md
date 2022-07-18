@@ -19,4 +19,4 @@
 ·**警告：** _**我们注册了关机检测,若您在非关机时间关机我们将强制重启**_<br>
 
 ## 感谢您的支持<br>
-### [B站个人主页](https://space.bilibili.com/687039517)
+### [B站[image](https://i0.hdslb.com/bfs/archive/bd116d19ba607277ad5413196d80b6776765039d.png)个人主页](https://space.bilibili.com/687039517)
