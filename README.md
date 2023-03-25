@@ -1,7 +1,7 @@
 # 自动定时关机小程序，解决学生是电脑管理员忘记关电脑或关电脑烦的痛点
 
 ## 用前声明<br>
-我是一个初中生,Python萌新,可能有较多处语法不规范的地方,我甚至连怎么将PySide2的UI文件转为py文件并导入项目都不会,请谅解,谢谢.
+我是一个~畜生~初中生,Python萌新,可能有较多处语法不规范的地方,我甚至连怎么将PySide2的UI文件转为py文件并导入项目都不会,请谅解,谢谢.
 
 ## 使用方法<br>
 ·下载Release解压运行"autoPowerOff.exe"或克隆后使用python 3.9.8 (包含PySide2 + PythonWx + pywin32 + pynput库) 运行main.py (上述方法首次运行均可能需要安装"MiSans-Semibold-首次运行需要安装此字体.ttf"字体)<br>
